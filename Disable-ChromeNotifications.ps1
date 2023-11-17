@@ -1,9 +1,14 @@
+# Disable Chrome Notifications in Windows 10/11
+# Written by Jonathan Bullock
+# 2023 - 10 - 21
+
+
 # Define the path to the Chrome policies key in the registry
 $registryPath = "HKCU:\Software\Policies\Google\Chrome"
 $backupFolder = "C:\brockit"
 $backupFile = "C:\brockit\ChromePolicyBackup.reg"
 
-# Ensure the backup folder exists
+# confirm BrockIT folder exists
 if (-not (Test-Path $backupFolder)) {
     New-Item -Path $backupFolder -ItemType Directory
 }
