@@ -3,11 +3,61 @@
 # 2023 - 11 - 20
 
 
-# Get all dir under Kaseya folder
-$agentDirectories = Get-ChildItem -Path "C:\Program Files (x86)\Kaseya\" -Directory
+# Function to uninstall software using MSI
+function Uninstall-MSI {
+    param (
+        [string]$uninstallString
+    )
 
-# Loop through each dir and run uninstall command
-foreach ($dir in $agentDirectories) {
-    $uninstallString = "C:\Program Files (x86)\Kaseya\$dir\KASetup.exe /s /r /g $dir /l '%TEMP%\kasetup_$dir.log'"
-    Invoke-Expression $uninstallString
+    try {
+        Start-Process "msiexec.exe" -ArgumentList "/x $uninstallString /quiet /norestart" -Wait
+        return $true
+    } catch {
+        Write-Error "MSI uninstallation failed: $_"
+        return $false
+    }
 }
+
+# Function to find and run setup.exe with switches
+function Run-SetupExe {
+    param (
+        [string]$installDir
+    )
+
+    $setupExe = Get-ChildItem -Path $installDir -Filter "setup*.exe" -Recurse | Select-Object -First 1
+
+    if ($setupExe) {
+        try {
+            Start-Process $setupExe.FullName -ArgumentList "/s /r" -Wait
+            Write-Host "Setup.exe run successfully."
+        } catch {
+            Write-Error "Failed to run setup.exe: $_"
+        }
+    } else {
+        Write-Error "No setup.exe found in $installDir"
+    }
+}
+
+# Main script logic
+$softwareName = "Kaseya"
+$registryPaths = @(
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+    "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+)
+
+foreach ($path in $registryPaths) {
+    $software = Get-ItemProperty $path | Where-Object { $_.DisplayName -like "*$softwareName*" }
+
+    if ($software) {
+        Write-Host "Found $softwareName at $($software.InstallLocation)"
+        $uninstalled = Uninstall-MSI -uninstallString $software.UninstallString
+
+        if (-not $uninstalled) {
+            Write-Host "Attempting to run setup.exe uninstallation..."
+            Run-SetupExe -installDir $software.InstallLocation
+        }
+        break
+    }
+}
+
+Write-Host "Script execution completed."
