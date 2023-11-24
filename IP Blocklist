@@ -1,4 +1,9 @@
+#
 # List of IPs/Subnets that have been blocked due to malicious traffic on at least one client.
+#
+# If you'd like to appeal a ban, please submit via the Issues tab.
+#
+#
 213.170.223.0/24
 87.248.131.0/24
 ​64.113.16.0/22
