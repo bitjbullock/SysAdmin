@@ -3,6 +3,14 @@
 # Written by Jonathan Bullock
 # 2023 - 11 - 25
 #
+
+# Create BIT directory if it doesn't exist
+$directoryPath = "C:\brockit\"
+if (!(Test-Path -Path $directoryPath)) {
+    New-Item -Path $directoryPath -ItemType Directory
+}
+
+
 # Get all Wi-Fi profiles
 $profiles = netsh wlan show profiles | Select-String -Pattern "All User Profile" | ForEach-Object { $_.ToString().Split(":")[1].Trim() }
 
