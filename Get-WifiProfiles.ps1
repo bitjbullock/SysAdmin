@@ -24,4 +24,4 @@ foreach ($profile in $profiles) {
 }
 
 # Output the profile details
-$profileDetails
+$profileDetails | Format-Table -AutoSize | Out-File -FilePath "C:\brockit\wifiprofiles.txt"
