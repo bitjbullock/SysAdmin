@@ -23,6 +23,9 @@ $portRange = @(
 # @{ StartPort = 49152; EndPort = 65535; Protocol = 'TCP' } # Dynamic RPC port range for Microsoft Windows 2008 and later. For more information, see this Microsoft KB article.https://support.microsoft.com/kb/929851/en-us ## This is used by Backup server to connect to HyperV.
 )
 
+
+
+
 # Create firewall rules for individual ports
 foreach ($port in $ports) {
     $ruleName = "Veeam - $($port.Port)/$($port.Protocol)"
@@ -40,15 +43,16 @@ foreach ($port in $ports) {
     }
 }
 
+
 # Create a firewall rule for the port range
 $rangeRuleName = "Veeam - Port Range $($portRange.StartPort)-$($portRange.EndPort)/$($portRange.Protocol)"
+$portRangeString = "$($portRange.StartPort)-$($portRange.EndPort)" # Ensure the range is a string
+
 $existingRangeRule = Get-NetFirewallRule -DisplayName $rangeRuleName -ErrorAction SilentlyContinue
 if (-not $existingRangeRule) {
     # Create a new firewall rule for the range
-    New-NetFirewallRule -DisplayName $rangeRuleName -Direction Inbound -Protocol $portRange.Protocol -LocalPort $($portRange.StartPort)-$($portRange.EndPort) -Action Allow
-    Write-Host "Created firewall rule for port range $($portRange.StartPort)-$($portRange.EndPort) ($($portRange.Protocol))"
+    New-NetFirewallRule -DisplayName $rangeRuleName -Direction Inbound -Protocol $portRange.Protocol -LocalPort $portRangeString -Action Allow
+    Write-Host "Created firewall rule for port range $portRangeString ($($portRange.Protocol))"
 } else {
-    Write-Host "Firewall rule for port range $($portRange.StartPort)-$($portRange.EndPort) ($($portRange.Protocol)) already exists"
+    Write-Host "Firewall rule for port range $portRangeString ($($portRange.Protocol)) already exists"
 }
-
-Write-Host "All required firewall rules for Veeam Backup & Replication have been configured."
