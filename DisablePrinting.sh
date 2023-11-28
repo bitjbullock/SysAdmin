@@ -1,5 +1,5 @@
 #!/bin/bash
-# This is a bash script for MacOS. I know it's in WindowsAdmin repo but I don't write many MacOS scripts so here it goes. 
+# This is a bash script for MacOS. 
 # Written by Jonathan Bullock
 # 2023 - 11 - 23
 
