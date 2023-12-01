@@ -1,5 +1,5 @@
 #!/bin/bash
-# This is a bash script for MacOS. 
+# This is a bash script for MacOS. It just disables printing, created for a school so students wouldn't abuse the printers. As students obviously will. Here's the reversal script. https://github.com/bitjbullock/SysAdmin/blob/main/EnablePrinting.sh
 # Written by Jonathan Bullock
 # 2023 - 11 - 23
 
