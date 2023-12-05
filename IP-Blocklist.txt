@@ -1,6 +1,8 @@
 #
 # List of IPs/Subnets that have been blocked due to malicious traffic on at least one client.
 #
+# If a subnet is listed, it's because there were at least 5 different IPs in that range identified, AND, the ISP did not respond to requests for resolution within 48 hours(Excluding weekends) of a report. 
+#
 # If you'd like to appeal a ban, please submit via the Issues tab.
 #
 #
@@ -63,3 +65,10 @@
 108.165.0.0/16
 172.120.3.173
 95.164.150.22
+
+# 2023 - 12 - 05
+191.101.148.0/24
+216.185.32.0/19
+95.164.144.0/21
+172.120.3.18/32
+135.148.0.0/16
