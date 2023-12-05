@@ -1,3 +1,8 @@
+# Sets Adobe Reader as the default PDF viewer. Not really tested.
+# Written by Jonathan Bullock
+# Not sure when I wrote it. Sometime 2021? 
+#
+#
 # Ensure script is being run as an administrator
 If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
 {
