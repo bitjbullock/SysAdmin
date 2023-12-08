@@ -4,10 +4,20 @@
 # 2023 - 12 - 08
 
 # Define the root path to scan
-$rootPath = "C:\"  # Replace with the directory you want to scan
+$rootPath = "C:\users"  # Replace with the directory you want to scan
 
 # Get all directories in the specified path recursively
 $directories = Get-ChildItem -Path $rootPath -Recurse -Directory
+
+# Calculate the size of each directory and convert it to GB
+$dirSizes = $directories | ForEach-Object {
+    $sizeInBytes = (Get-ChildItem -Path $_.FullName -Recurse -File | Measure-Object -Property Length -Sum).Sum
+    $sizeInGB = [Math]::Round($sizeInBytes / 1GB, 2)  # Round to 2 decimal places
+    [PSCustomObject]@{
+        Directory = $_.FullName
+        SizeGB = $sizeInGB
+    }
+}
 
 # Calculate the size of each directory
 $dirSizes = $directories | ForEach-Object {
