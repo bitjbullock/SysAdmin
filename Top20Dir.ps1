@@ -29,7 +29,7 @@ $dirSizes = $directories | ForEach-Object {
 }
 
 # Sort the directories by size and select the top 20
-$topDirs = $dirSizes | Sort-Object Size -Descending | Select-Object -First 20
+$topDirs = $dirSizes | Sort-Object SizeGB -Descending | Select-Object -First 20
 
 # Format the output for both file and console
 $formattedOutput = $topDirs | Format-Table -AutoSize | Out-String -Width 4096
