@@ -28,14 +28,24 @@ if (-not [System.Diagnostics.EventLog]::SourceExists($eventSource)) {
     Write-Host "Event Source $eventSource created in $eventLog log."
 }
 
+# Check if the registry path exists, if not, create it
+if (-not (Test-Path $registryPath)) {
+    New-Item -Path $registryPath -Force
+    Write-Host "Registry path $registryPath created."
+}
+
+
 # Check each setting and update if necessary
 foreach ($setting in $settings.Keys) {
-    $value = Get-ItemPropertyValue -Path $registryPath -Name $setting -ErrorAction SilentlyContinue
-    if ($value -ne $settings[$setting]) {
+    # Check if the property exists
+    if (Get-ItemProperty -Path $registryPath -Name $setting -ErrorAction SilentlyContinue) {
+        # If property exists, update it
         Set-ItemProperty -Path $registryPath -Name $setting -Value $settings[$setting]
         Write-EventLog -LogName $eventLog -Source $eventSource -EntryType Information -EventId 1001 -Message "Updated $setting to $($settings[$setting]) in OneDrive settings."
     } else {
-        Write-EventLog -LogName $eventLog -Source $eventSource -EntryType Information -EventId 1002 -Message "Checked $setting, no update needed in OneDrive settings."
+        # If property doesn't exist, create it
+        New-ItemProperty -Path $registryPath -Name $setting -Value $settings[$setting] -PropertyType DWORD -Force
+        Write-EventLog -LogName $eventLog -Source $eventSource -EntryType Information -EventId 1003 -Message "Created $setting with value $($settings[$setting]) in OneDrive settings."
     }
 }
 
