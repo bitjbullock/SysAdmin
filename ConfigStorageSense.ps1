@@ -3,7 +3,7 @@
 # In an AD environment, best practice would be to configure these via GPO. 
 #
 #
-# Script written by Christopher Talke, github link: https://github.com/christopher-talke
+# Script originally written by Christopher Talke, github link: https://github.com/christopher-talke
 # 
 # Support the creator of the script and drop him a follow.
 #
