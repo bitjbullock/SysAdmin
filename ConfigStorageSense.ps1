@@ -20,7 +20,7 @@ function Write-ErrorLog {
         [string]$Message,
         [int]$EventId = 1
     )
-    Write-EventLog -LogName "Application" -Source "StoragePolicyScript" -EntryType Error -EventId $EventId -Message $Message
+    Write-EventLog -LogName "Application" -Source "BIT.StoragePolicyScript" -EntryType Error -EventId $EventId -Message $Message
 }
 
 try {
