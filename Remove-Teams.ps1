@@ -9,7 +9,7 @@ Function Write-Log {
     Param ([string]$logString)
 
     # You can change the log file path as needed
-    $logFile = "C:\path\to\your\log\file.txt"
+    $logFile = "C:\brockit\ConsumerTeamsRemoval.txt"
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $logEntry = "$timestamp - $logString"
     Add-content -Path $logFile -Value $logEntry
