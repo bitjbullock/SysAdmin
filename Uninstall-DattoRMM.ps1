@@ -1,4 +1,6 @@
 # PowerShell script to uninstall Datto RMM. Could be useful for other defined uninstallers as well.
+# Written by Jonathan Bullock
+# Date Unknown
 
 # Define the path to the uninstaller
 $uninstallerPath = "C:\Program Files (x86)\CentraStage\uninst.exe"
