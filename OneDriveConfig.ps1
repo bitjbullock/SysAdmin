@@ -35,16 +35,21 @@ if (-not (Test-Path $registryPath)) {
 }
 
 
-# Check each setting and update if necessary
+# Iterate over each setting
 foreach ($setting in $settings.Keys) {
+    # Determine PropertyType based on the setting
+    $propertyType = if ($setting -eq "KFMSilentOptIn") { "String" } else { "DWORD" }
+
     # Check if the property exists
-    if (Get-ItemProperty -Path $registryPath -Name $setting -ErrorAction SilentlyContinue) {
+    $propertyExists = Get-ItemProperty -Path $registryPath -Name $setting -ErrorAction SilentlyContinue
+    
+    if ($propertyExists) {
         # If property exists, update it
         Set-ItemProperty -Path $registryPath -Name $setting -Value $settings[$setting]
         Write-EventLog -LogName $eventLog -Source $eventSource -EntryType Information -EventId 1001 -Message "Updated $setting to $($settings[$setting]) in OneDrive settings."
     } else {
-        # If property doesn't exist, create it
-        New-ItemProperty -Path $registryPath -Name $setting -Value $settings[$setting] -PropertyType DWORD -Force
+        # If property doesn't exist, create it with the determined PropertyType
+        New-ItemProperty -Path $registryPath -Name $setting -Value $settings[$setting] -PropertyType $propertyType -Force
         Write-EventLog -LogName $eventLog -Source $eventSource -EntryType Information -EventId 1003 -Message "Created $setting with value $($settings[$setting]) in OneDrive settings."
     }
 }
