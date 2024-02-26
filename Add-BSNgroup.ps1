@@ -16,7 +16,7 @@ if (-not $group) {
 }
 
 # Define Business license SKUs
-$businessLicenses = @("BUSINESS_ESSENTIALS", "EXCHANGESTANDARD", "O365_BUSINESS_PREMIUM", "BUSINESS_PREMIUM", "ENTERPRISEPACK")
+$businessLicenses = @("BUSINESS_ESSENTIALS", "SPB", "STANDARDPACK", "O365_BUSINESS_ESSENTIALS", "EXCHANGE_S_FOUNDATION", "EXCHANGESTANDARD", "O365_BUSINESS_PREMIUM", "BUSINESS_PREMIUM", "ENTERPRISEPACK")
 
 # Get all users and their license details
 $users = Get-AzureADUser -All $true | ForEach-Object {
