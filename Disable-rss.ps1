@@ -4,7 +4,7 @@
 # 2024 - 04 - 08
 
 # Definitions
-$registryPath = "HKCU:\software\policies\microsoft\office\16.0\outlook\options\rss"
+$registryPath = "HKCU:\software\policies\microsoft\office\*\outlook\options\rss"
 $registryName = "Disable"
 $registryValue = 1
 
