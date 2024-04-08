@@ -17,10 +17,6 @@ if (Test-Path $registryPath) {
     Write-Host "RSS Feeds are not enabled or already disabled in Outlook."
 }
 
-# Set the new value
-Set-ItemProperty -Path $registryPath -Name $valueName -Value $newValue -Type DWord
-
-
 # Check if the path exists, if not create it
 if (-not (Test-Path $registryPath)) {
     New-Item -Path $registryPath -Force | Out-Null
