@@ -3,18 +3,30 @@
 # Jonathan Bullock
 # 2024 - 04 - 08
 
+# Definitions
 $registryPath = "HKCU:\software\policies\microsoft\office\16.0\outlook\options\rss"
+$registryName = "Disable"
+$registryValue = 1
 
-# Define the name of the value you want to change
-$valueName = "disable"
 
-# Define the new value (1 to enable, 0 to disable)
-$newValue = 1
-
-# Check if the registry key exists, and if not, create it
-if (-not (Test-Path $registryPath)) {
-    New-Item -Path $registryPath -Force
+# Check if the RSS registry key exists and remove it
+if (Test-Path $registryPath) {
+    Remove-Item -Path $registryPath -Recurse
+    Write-Host "RSS Feeds have been disabled in Outlook."
+} else {
+    Write-Host "RSS Feeds are not enabled or already disabled in Outlook."
 }
 
 # Set the new value
 Set-ItemProperty -Path $registryPath -Name $valueName -Value $newValue -Type DWord
+
+
+# Check if the path exists, if not create it
+if (-not (Test-Path $registryPath)) {
+    New-Item -Path $registryPath -Force | Out-Null
+}
+
+# Set the value to disable RSS Feeds
+Set-ItemProperty -Path $registryPath -Name $registryName -Value $registryValue
+
+Write-Host "RSS Feeds have been successfully disabled in Outlook through registry."
