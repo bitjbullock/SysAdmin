@@ -33,8 +33,10 @@ if ((Test-Admin) -eq $false)  {
 New-Item -Path "c:\" -Name "BrockIT" -ItemType "directory"
 
 # Uninstall Garbage
-"*maps*","*news*","*groove*","*disney*","*officehub*","*spotify*","*3d*","*candy*","*camera*","*feedback*","*reality*","*people*","*voice*","*solitaire*","*phone*","*weather*","*dell*","*HP*","*lenovo*","*xbox*","*skype*","*zune*","*office*","*windowscommunicationsapps*" | foreach {get-appxpackage -allusers $_ | Remove-AppxPackage}
-Get-AppxPackage Microsoft.windowscommunicationsapps | Remove-AppxPackage
+$packages = "*maps*","*news*","*groove*","*disney*","*officehub*","*spotify*","*3d*","*candy*","*camera*","*feedback*","*reality*","*people*","*voice*","*solitaire*","*phone*","*weather*","*dell*","*HP*","*lenovo*","*xbox*","*skype*","*zune*","*office*","*windowscommunicationsapps*"
+foreach ($package in $packages) {
+    Get-AppxPackage -AllUsers -Name $package | Remove-AppxPackage
+}
 
 # Prompt for PC name
 # $PCName = Read-Host -Prompt 'Input Desired PC name'
