@@ -1,3 +1,11 @@
+# Script is designed to pull mailbox stats from Exchange Online
+# Connect-ExchangeOnline
+# Run script
+# Output will go to C:\brockit  - Modify if necessary for your application
+#
+# Written by Jonathan Bullock
+# 2024 - 05 - 17
+
 # Define the date range
 $startDate = (Get-Date).AddDays(-10)
 $endDate = Get-Date
