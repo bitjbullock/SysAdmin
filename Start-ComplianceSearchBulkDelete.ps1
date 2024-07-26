@@ -103,7 +103,7 @@ If ($compliancesearch.ExchangeLocation.count -ne 1) {
     Write-Host
     write-host "You have selected a Compliance Search scoped for more than 1 mailbox, please press any key to restart and select a search scoped for a single mailbox."
     Write-Host -function "Start-complianceSearchBulkDelete" -step  "Selecting a Compliance Search scoped for a single mailbox" -Description "Selected the Compliance Search '$ComplianceSearch', which is scoped for more than 1 mailbox, redirecting to new search selection."
-    Read-Key
+    # Read-Key
 
 }
 
@@ -188,7 +188,7 @@ Else {
 If (($MaxAvailable -le 0) -and ($SIREnabled -and ($SIRRetainDays.Substring(0, 1) -ne "0"))) {
     Write-Host "Not enough space available under 'Recoverable Items' folder to accommodate the items!"
     Write-Host "Either adjust the search query to return fewer items, or make additional space in 'Recoverable Items' mailbox folder."
-    Read-Key
+    # Read-Key
 
 }
 Elseif ($SIREnabled -and ($SIRRetainDays.Substring(0, 1) -ne "0")) {
@@ -212,7 +212,7 @@ Write-Host -ForegroundColor Cyan "Are you sure you want to delete the $initialit
 $option = $option.ToLower()
 If ($Option -ne "yes") { 
     Write-Host "You haven't confirmed by typing 'yes'. Press any key to restart."
-    Read-Key
+    # Read-Key
 
 }
 
@@ -306,7 +306,7 @@ DO {
             } 
             else {
                 Write-Host "cannot create new search action, returning to menu"
-                Read-Key
+                # Read-Key
                 &$cleanup
                 
             }
@@ -353,7 +353,7 @@ if ($OpenHTMLfile.ToLower() -like "*y*") {
     
 Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow 
     
-Read-Key 
+# Read-Key 
 
 Write-Host -function "Start-complianceSearchBulkDelete" -step  "Return to main menu" -Description "Done"
    
