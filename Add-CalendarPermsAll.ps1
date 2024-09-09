@@ -1,3 +1,7 @@
+# Adds a user as Editor permissions to all mailboxs in an org
+# Written by Jonathan Bullock
+# 2024-09-09
+
 # Prompt the script runner to enter the user who should get access to the mailboxes
 $UserToGrant = Read-Host "Please enter the email address of the user to whom you want to grant access (e.g., lisa@domain.com)"
 
