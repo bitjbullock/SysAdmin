@@ -3,23 +3,20 @@
 # Written by Jonathan Bullock
 # 2024-09-09
 
-# Import the Veeam PowerShell module
+# Import the Veeam Backup PowerShell module
 Import-Module Veeam.Backup.PowerShell
 
-# Check if the module is loaded
-if (Get-Module -ListAvailable -Name "Veeam.Backup.PowerShell") {
-    Write-Host "Veeam Backup PowerShell module loaded successfully."
-    
-    # Get all Backup Copy Jobs
-    $backupCopyJobs = Get-VBRJob | Where-Object {$_.JobType -eq "BackupCopy"}
+# Get all Backup Copy Jobs
+$backupCopyJobs = Get-VBRBackupCopyJob
 
-    # Start Sync for each Backup Copy Job
-    foreach ($job in $backupCopyJobs) {
-        Write-Host "Starting Sync for job: $($job.Name)"
-        Sync-VBRJob -Job $job
-    }
-
-    Write-Host "All Backup Copy jobs have been triggered for synchronization."
+if ($backupCopyJobs.Count -eq 0) {
+    Write-Host "No Backup Copy Jobs found."
 } else {
-    Write-Host "Veeam Backup PowerShell module could not be loaded. Please ensure Veeam is installed and the module is available."
+    # Sync each Backup Copy Job
+    foreach ($job in $backupCopyJobs) {
+        Write-Host "Syncing job: $($job.Name)"
+        Sync-VBRBackupCopyJob -Job $job.Name
+    }
+    Write-Host "All Backup Copy jobs have been triggered for synchronization."
 }
+
