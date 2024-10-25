@@ -7,7 +7,6 @@
 #
 
 
-# Retrieve the input from the script variable
 # Retrieve the input from the NinjaRMM environment variable
 $NewComputerName = $env:newcomputername
 
