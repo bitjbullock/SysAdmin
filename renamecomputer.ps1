@@ -8,9 +8,9 @@
 
 
 # Retrieve the input from the script variable
-param (
-    [string]$NewComputerName = ""
-)
+# Retrieve the input from the NinjaRMM environment variable
+$NewComputerName = $env:newcomputername
+
 
 # Ensure the script runs with elevated privileges
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
