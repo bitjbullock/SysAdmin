@@ -2,15 +2,15 @@
 # Credit to Braintek
 
 # Modified by Jonathan Bullock
-
+# 2024 - 11 - 05
 
 # Required fields:
-# slapsUsername
-# SlapsPassword
-# SlapsPasswordDate
+# slapsusername
+# slapspassword
+# slapspassworddate
 
-[string]$script:dateFieldName = "SlapsPasswordDate"
-[string]$script:passFieldName = "SlapsPassword"
+[string]$script:dateFieldName = "slapspassworddate"
+[string]$script:passFieldName = "slapspassword"
 [datetime]$script:OldestDate = ([datetime]::now)
 [int]$script:OldestIndex = 0
 
@@ -26,7 +26,7 @@ Function main{
   #$password = ([char[]]([char]33..[char]95) + ([char[]]([char]97..[char]126)) + 0..9 | Sort-Object {Get-Random})[0..12] -join ''
   
   #Update username custom field and current password
-  Ninja-Property-Set slapsUsername $username
+  Ninja-Property-Set slapsusername $username
   ChangeOldest $temp
 
   #Wash password
