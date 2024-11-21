@@ -1,3 +1,11 @@
+# add variables
+$siteUrl = "https://YourTenantName.sharepoint.com/sites/YourSiteName"
+$libraryName = "Documents"  # Replace with your DL name
+
+# Connect to SharePoint Online
+Connect-PnPOnline -Url $siteUrl -Interactive
+
+
 # Get all items from the document library
 $items = Get-PnPListItem -List $libraryName -PageSize 500 -Fields FileLeafRef, FileDirRef
 
