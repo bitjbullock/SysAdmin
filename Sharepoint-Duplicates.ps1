@@ -1,3 +1,16 @@
+# Sort of works. 
+# Searches through a DML for possible duplicates with the methodology that it will likely say -LT01 or -DT01 so it's looking for "-" and then a name.
+# 
+# Requires: 
+# PowerShell 7
+# AAD Connected device
+# Cross tenant connection is not allowed
+# 
+# WRitten by Jonathan Bullock
+# 2024 - 11 - 21
+
+
+
 # add variables
 $siteUrl = "https://YourTenantName.sharepoint.com/sites/YourSiteName"
 $libraryName = "Documents"  # Replace with your DL name
