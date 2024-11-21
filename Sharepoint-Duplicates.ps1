@@ -3,7 +3,7 @@ $siteUrl = "https://YourTenantName.sharepoint.com/sites/YourSiteName"
 $libraryName = "Documents"  # Replace with your DL name
 
 # Connect to SharePoint Online
-Connect-PnPOnline -Url $siteUrl -Interactive
+Connect-PnPOnline -Url $siteUrl -UseWebLogin
 
 
 # Get all items from the document library
