@@ -1,28 +1,68 @@
+# Set the execution policy for the current process to Unrestricted without prompting
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process -Force
+
+
 # Define the printer name and IP address
 $printerName = "2nd floor"
 $printerIP = "10.18.3.51"
 
-# Define the URL for the INF file and where to save it locally
-$driverInfUrl = "https://bitimages.nyc3.digitaloceanspaces.com/Uploads/Drivers/KOBxxK__01.inf"
-$localDriverPath = "$env:TEMP\konica_minolta_v4_PLC.inf"
+# Define the URL for the zip, download location and extracted path
+$driverZipUrl = "https://bitimages.nyc3.digitaloceanspaces.com/Uploads/Drivers/KM_v4UPD_UniversalDriver_PCL_2.4.0.1.zip"
+$localZipPath   = "$env:TEMP\KM_v4UPD_UniversalDriver_PCL.zip"
+$extractFolder  = "$env:TEMP\KM_v4UPD_UniversalDriver_PCL"
 
-# Download the driver INF file from the internet
+# Download the driver ZIP file from the internet
 try {
-    Write-Output "Downloading driver INF file from $driverInfUrl..."
-    Invoke-WebRequest -Uri $driverInfUrl -OutFile $localDriverPath -ErrorAction Stop
-    Write-Output "Download complete. Saved to $localDriverPath."
+    Write-Output "Downloading driver ZIP file from $driverZipUrl..."
+    Invoke-WebRequest -Uri $driverZipUrl -OutFile $localZipPath -ErrorAction Stop
+    Write-Output "Download complete. Saved to $localZipPath."
 }
 catch {
-    Write-Error "Failed to download the driver INF file: $_"
+    Write-Error "Failed to download the driver ZIP file: $_"
     exit 1
 }
 
-# Install the driver using pnputil
-# The /add-driver option adds the driver to the driver store.
-# The /install option installs the driver on matching devices.
+# Unzip the file
+try {
+    # Remove the extraction folder if it already exists for a clean extraction.
+    if (Test-Path $extractFolder) {
+        Remove-Item -Path $extractFolder -Recurse -Force
+    }
+    Write-Output "Extracting driver ZIP file to $extractFolder..."
+    Expand-Archive -Path $localZipPath -DestinationPath $extractFolder -Force
+    Write-Output "Extraction complete."
+}
+catch {
+    Write-Error "Failed to extract the driver ZIP file: $_"
+    exit 1
+}
+
+# Locate the INF file in the extracted folder (search recursively)
+try {
+    $infFiles = Get-ChildItem -Path $extractFolder -Filter *.inf -Recurse
+    if ($infFiles.Count -eq 0) {
+        Write-Error "No INF file found in the extracted folder. Exiting."
+        exit 1
+    }
+    elseif ($infFiles.Count -eq 1) {
+        $driverInfPath = $infFiles[0].FullName
+        Write-Output "Found INF file: $driverInfPath"
+    }
+    else {
+        Write-Output "Multiple INF files found. Using the first found: $($infFiles[0].FullName)"
+        $driverInfPath = $infFiles[0].FullName
+    }
+}
+catch {
+    Write-Error "Error locating INF file: $_"
+    exit 1
+}
+
+
+# Install the driver using pnputil (with /subdirs in case additional files are in nested folders)
 try {
     Write-Output "Installing driver using pnputil..."
-    $pnputilOutput = pnputil.exe /add-driver $localDriverPath /install
+    $pnputilOutput = pnputil.exe /add-driver "$driverInfPath" /install /subdirs
     Write-Output $pnputilOutput
 }
 catch {
@@ -37,16 +77,22 @@ $driverName = "KONICA MINOLTA Univeral V4 PCL"
 
 
 
-# Create the printer port
-try {
-    Write-Output "Creating printer port for IP $printerIP..."
-    Add-PrinterPort -Name $printerIP -PrinterHostAddress $printerIP
-    Write-Output "Printer port created."
+# Check if the printer port already exists; if not, create it
+if (-not (Get-PrinterPort -Name $printerIP -ErrorAction SilentlyContinue)) {
+    try {
+        Write-Output "Creating printer port for IP $printerIP..."
+        Add-PrinterPort -Name $printerIP -PrinterHostAddress $printerIP
+        Write-Output "Printer port created."
+    }
+    catch {
+        Write-Error "Failed to create printer port: $_"
+        exit 1
+    }
 }
-catch {
-    Write-Error "Failed to create printer port: $_"
-    exit 1
+else {
+    Write-Output "Printer port for IP $printerIP already exists. Skipping creation."
 }
+
 
 
 # Add the printer using the newly installed driver
