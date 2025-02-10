@@ -98,16 +98,10 @@ if ($publishedNameLine) {
     exit 1
 }
 
-# Get Driver name
+# Set Driver name because "windows"
 
-$driverInfo = Get-PrinterDriver | Where-Object { $_.InfName -eq $publishedInfName }
-if ($driverInfo) {
-    $driverName = $driverInfo.Name
-    Write-Output "Detected driver name: $driverName"
-} else {
-    Write-Error "Could not determine driver name for INF file $publishedInfName. Please specify the driver name manually."
-    exit 1
-}
+$driverName = "KONICA MINOLTA Universal V4 PCL"
+Write-Output "Using driver name: $driverName"
 
 
 
