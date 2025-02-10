@@ -100,7 +100,7 @@ if ($publishedNameLine) {
 
 # Set Driver name because "windows"
 
-$driverName = "KONICA MINOLTA Universal V4 PCL"
+$driverName = "KONICA MINOLTA PS BW Laser Class Driver"
 Write-Output "Using driver name: $driverName"
 
 
