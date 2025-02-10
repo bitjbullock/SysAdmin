@@ -70,8 +70,26 @@ catch {
     exit 1
 }
 
-# Driver Name
-$driverName = "KONICA MINOLTA Univeral V4 PCL"  
+# Find driver name with pnputil
+$publishedNameLine = $pnputilOutput | Where-Object { $_ -match "Published Name:" }
+if ($publishedNameLine) {
+    $publishedInfName = ($publishedNameLine -replace "Published Name:\s*", "").Trim()
+    Write-Output "Driver published INF: $publishedInfName"
+} else {
+    Write-Error "Published name not found in pnputil output. Please verify driver installation."
+    exit 1
+}
+
+# Get Driver name
+
+$driverInfo = Get-PrinterDriver | Where-Object { $_.InfName -eq $publishedInfName }
+if ($driverInfo) {
+    $driverName = $driverInfo.Name
+    Write-Output "Detected driver name: $driverName"
+} else {
+    Write-Error "Could not determine driver name for INF file $publishedInfName. Please specify the driver name manually."
+    exit 1
+}
 
 
 
@@ -97,7 +115,7 @@ else {
 
 # Add the printer using the newly installed driver
 try {
-    Write-Output "Adding printer '$printerName'..."
+    Write-Output "Adding printer '$printerName' with driver '$driverName'..."
     Add-Printer -Name $printerName -PortName $printerIP -DriverName $driverName
     Write-Output "Printer added successfully."
 }
@@ -105,4 +123,3 @@ catch {
     Write-Error "Failed to add the printer: $_"
     exit 1
 }
-
