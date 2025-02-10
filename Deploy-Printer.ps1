@@ -11,6 +11,8 @@ $driverZipUrl = "https://bitimages.nyc3.digitaloceanspaces.com/Uploads/Drivers/K
 $localZipPath   = "$env:TEMP\KM_v4UPD_UniversalDriver_PCL.zip"
 $extractFolder  = "$env:TEMP\KM_v4UPD_UniversalDriver_PCL"
 
+
+
 # Download the driver ZIP file from the internet
 try {
     Write-Output "Downloading driver ZIP file from $driverZipUrl..."
@@ -21,6 +23,8 @@ catch {
     Write-Error "Failed to download the driver ZIP file: $_"
     exit 1
 }
+
+
 
 # Unzip the file
 try {
@@ -37,26 +41,40 @@ catch {
     exit 1
 }
 
-# Locate the INF file in the extracted folder (search recursively)
+
+
+
+# Locate the INF file in the extracted folder (search recursively) Tell Windows to use x64 because its dumb and will use ARM 
 try {
     $infFiles = Get-ChildItem -Path $extractFolder -Filter *.inf -Recurse
     if ($infFiles.Count -eq 0) {
         Write-Error "No INF file found in the extracted folder. Exiting."
         exit 1
     }
-    elseif ($infFiles.Count -eq 1) {
-        $driverInfPath = $infFiles[0].FullName
-        Write-Output "Found INF file: $driverInfPath"
+    
+    # Filter for INF files that are for x64 Windows 10
+    $x64Win10InfFiles = $infFiles | Where-Object { $_.FullName -match "x64" -and $_.FullName -match "Win10" }
+    if ($x64Win10InfFiles.Count -gt 0) {
+        $driverInfPath = $x64Win10InfFiles[0].FullName
+        Write-Output "Found x64 Win10 INF file: $driverInfPath"
     }
     else {
-        Write-Output "Multiple INF files found. Using the first found: $($infFiles[0].FullName)"
-        $driverInfPath = $infFiles[0].FullName
+        if ($infFiles.Count -eq 1) {
+            $driverInfPath = $infFiles[0].FullName
+            Write-Output "Found single INF file: $driverInfPath"
+        }
+        else {
+            Write-Output "Multiple INF files found. Using the first found: $($infFiles[0].FullName)"
+            $driverInfPath = $infFiles[0].FullName
+        }
     }
 }
 catch {
     Write-Error "Error locating INF file: $_"
     exit 1
 }
+
+
 
 
 # Install the driver using pnputil (with /subdirs in case additional files are in nested folders)
