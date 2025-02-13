@@ -19,7 +19,7 @@ Function dbg{$lineNumber = $MyInvocation.ScriptLineNumber; " -debug line $lineNu
 
 Function main{
   
-  #Start-Transcript C:\!MSP\btlocal.txt
+  #Start-Transcript C:\brockit\btlocal.txt
   #Declare variables and create new user/password with QA
   $username = "btlocal"
   $temp = (([char[]]([char]48..[char]57) + [char[]]([char]65..[char]90) + [char[]]([char]97..[char]122)) + 0..9 | Sort-Object {Get-Random})[0..14] -join ''
