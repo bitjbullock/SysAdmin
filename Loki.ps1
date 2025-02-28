@@ -31,6 +31,6 @@ cd $lokiExtractedFolder.FullName
 
 # Run Loki to scan for IOCs
 # Review readme on github https://github.com/Neo23x0/Loki
-.\loki.exe --scan
+.\loki.exe --intense --onlyrelevant
 
 
