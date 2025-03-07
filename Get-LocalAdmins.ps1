@@ -21,6 +21,7 @@ param (
 )
 
 begin {
+    # Optional: let environment variables override parameters
     if ($env:customFieldName -and $env:customFieldName -notlike "null") {
         $CustomField = $env:customFieldName
     }
@@ -31,8 +32,8 @@ begin {
     $CheckNinjaCommand  = "Ninja-Property-Set"
     $LocalComputerName  = $env:COMPUTERNAME
 
-    # Build a case-insensitive regex to match COMPUTERNAME\ at start
-    # Example: if $LocalComputerName = 'MYPC', it matches "mypc\" or "MYPC\" or "MyPc\" ...
+    # Build a case-insensitive regex to match COMPUTERNAME\ at the start
+    # Example: if $LocalComputerName = 'MYPC', it will match 'mypc\' or 'MYPC\' ...
     $LocalPrefixRegex   = '^(?i)' + [Regex]::Escape($LocalComputerName) + '\\'
 }
 
@@ -50,46 +51,71 @@ process {
     $ProcessedUsers = @()
 
     foreach ($item in $RawUsers) {
-        # Trim leading/trailing whitespace just in case
+        # 1) Trim each line to remove trailing/leading whitespace
         $line = $item.Trim()
 
-        # Check if it starts with COMPUTERNAME\ (case-insensitive)
-        if ($line -match $LocalPrefixRegex) {
-            # Strip the COMPUTERNAME\ portion
-            $localName = $line -replace $LocalPrefixRegex, ''
-            # Also trim again in case there's trailing space
-            $localName = $localName.Trim()
+        # 2) Remove COMPUTERNAME\ if it exists (case-insensitive)
+        $localName = $line -replace $LocalPrefixRegex, ''
+        $localName = $localName.Trim()
 
-            # --- TRY local user ---
-            # Use a *case-insensitive* check by enumerating & comparing:
+        # 3) Check if that changed anything
+        if ($localName -eq $line) {
+            #
+            # => This means there was NO "COMPUTERNAME\" prefix
+            # => Possibly a bare "Administrator" or a domain account
+            #
+            # Try to see if it's actually a local user by enumerating
+            $localUser = Get-LocalUser -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -ieq $line }
+
+            if ($localUser) {
+                # It's a local user
+                if ($localUser.Enabled) {
+                    # Only add if enabled
+                    $ProcessedUsers += $line
+                }
+                else {
+                    # Disabled => skip
+                }
+            }
+            else {
+                # Not found as a local user => treat it as domain/built-in => keep as-is
+                $ProcessedUsers += $line
+            }
+        }
+        else {
+            #
+            # => A prefix WAS removed. So $line started with "COMPUTERNAME\"
+            # => $localName is what's left after removing it
+            #
+            # Check if it's a local user
             $localUser = Get-LocalUser -ErrorAction SilentlyContinue |
                 Where-Object { $_.Name -ieq $localName }
 
             if ($localUser) {
-                # Found as a local user
+                # It's a local user
                 if ($localUser.Enabled) {
                     # Only add if enabled
                     $ProcessedUsers += $localName
                 }
-                # If disabled, do nothing (skip)
+                else {
+                    # Disabled => skip
+                }
             }
             else {
-                # --- TRY local group ---
+                # Not found as a local user => see if it's a local group
                 $localGroup = Get-LocalGroup -ErrorAction SilentlyContinue |
                     Where-Object { $_.Name -ieq $localName }
 
                 if ($localGroup) {
-                    # It's a valid local group, keep it (without COMPUTERNAME\)
+                    # Keep local groups, minus the COMPUTERNAME\ prefix
                     $ProcessedUsers += $localName
                 }
-                # If neither found -> skip entirely
+                else {
+                    # It's neither a local user nor a local group => skip
+                    # (avoid adding disabled or unknown items)
+                }
             }
-        }
-        else {
-            # It's not local (doesn't start with COMPUTERNAME\),
-            # so it might be a domain account, or "NT AUTHORITY\SYSTEM", etc.
-            # Keep it as-is.
-            $ProcessedUsers += $line
         }
     }
 
@@ -97,7 +123,7 @@ process {
     Write-Host "Local Admins (excluding disabled local users, keeping domain accounts/groups):"
     Write-Host "  $($ProcessedUsers -join $Delimiter)"
 
-    # Optionally set custom field in Ninja
+    # If Ninja-Property-Set is available, set the custom field
     if ( (Get-Command $CheckNinjaCommand -ErrorAction SilentlyContinue).Name -eq $CheckNinjaCommand `
          -and -not [string]::IsNullOrEmpty($CustomField) `
          -and -not [string]::IsNullOrWhiteSpace($CustomField)) {
@@ -106,9 +132,10 @@ process {
         Ninja-Property-Set -Name $CustomField -Value ($ProcessedUsers -join $Delimiter)
     }
     else {
-        Write-Warning "Unable to set custom field (lack of elevation or Ninja command not found)."
+        Write-Warning "Unable to set custom field (lack of elevation or Ninja not found?)."
     }
 }
+
 
 
 
