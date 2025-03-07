@@ -1,32 +1,15 @@
-
-<#
-.SYNOPSIS
-    Updates a custom field with a list of local admins.
-.DESCRIPTION
-    Updates a custom field with a list of local admins.
-.EXAMPLE
-    No parameter needed
-    
-    Local Admins Found: Administrator, kbohlander, TEST\Domain Admins
-    Attempting to set Custom Field: LocalAdmins
-
-PARAMETER: -CustomField "ReplaceWithAnyTextCustomField"    
-    Updates the custom field you specified (defaults to "LocalAdmins"). The Custom Field needs to be writable by scripts (otherwise the script will report it as not found).
-
-PARAMETER: -Delimiter "ReplaceWithYourDesiredDelimiter"
-    Places whatever is entered encased of quotes between each user name. See below example.
-.EXAMPLE
-    -Delimiter " - "
-    
-    Local Admins Found: Administrator - kbohlander - TEST\Domain Admins
-    Attempting to set Custom Field: LocalAdmins
-.OUTPUTS
-    None
-.NOTES
-    Minimum OS Architecture Supported: Windows 7, Windows Server 2008
-    Release Notes:
-    Switched to using net localgroup as it's the most reliable. Removed PowerShell 5.1 requirement.
-#>
+# This script was originally written by, I assume?, NinjaRMM as there was no author listed and their repo is where I took this from initially.
+# I've placed it here so I can modify it to my requirements. 
+#
+#
+#PARAMETER: -CustomField "ReplaceWithAnyTextCustomField"    
+#    Updates the custom field you specified (defaults to "LocalAdmins"). The Custom Field needs to be writable by scripts (otherwise the script will report it as not found).
+#
+#PARAMETER: -Delimiter "ReplaceWithYourDesiredDelimiter"
+#    Places whatever is entered encased of quotes between each user name. See below example.
+#
+# Rewritten by Jonathan Bullock
+# 2025-03-07
 
 [CmdletBinding()]
 param (
