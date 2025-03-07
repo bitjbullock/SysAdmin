@@ -15,80 +15,87 @@
 param (
     [Parameter()]
     [String]$CustomField = "LocalAdmins",
+
     [Parameter()]
     [String]$Delimiter = ', '
 )
 
 begin {
-    if ($env:customFieldName -and $env:customFieldName -notlike "null") { $CustomField = $env:customFieldName }
-    if ($env:delimiter -and $env:delimiter -notlike "null") { $Delimiter = $env:delimiter }
-    $CheckNinjaCommand = "Ninja-Property-Set"
+    if ($env:customFieldName -and $env:customFieldName -notlike "null") {
+        $CustomField = $env:customFieldName
+    }
+    if ($env:delimiter -and $env:delimiter -notlike "null") {
+        $Delimiter = $env:delimiter
+    }
+    $CheckNinjaCommand  = "Ninja-Property-Set"
+    $LocalComputerName  = $env:COMPUTERNAME
     
-    # Grab the local computer name once here
-    $LocalComputerName = $env:COMPUTERNAME
-    
-    # Prepare a regex to match exactly 'COMPUTERNAME\' at the start
-    $LocalPrefixRegex  = '^' + [Regex]::Escape($LocalComputerName) + '\\'
+    # Build a case-insensitive regex to match "COMPUTERNAME\" at the start
+    $LocalPrefixRegex   = '^(?i)' + [Regex]::Escape($LocalComputerName) + '\\'
 }
+
 process {
-    # Get objects in the Administrators group (both local and domain accounts/groups)
+    # 1) Grab raw items from net localgroup Administrators
     $RawUsers = net.exe localgroup "Administrators" |
         Where-Object { $_ -and $_ -notmatch "command completed successfully" } |
         Select-Object -Skip 4
 
     if (-not $RawUsers) {
-        Write-Error "[Error] No user's found! This is extremely unlikely is something blocking access to 'net localgroup administrators'?"
+        Write-Error "[Error] No users found! Something might be blocking 'net localgroup administrators'."
         exit 1
     }
 
-# This will be our final list of processed accounts
     $ProcessedUsers = @()
 
     foreach ($item in $RawUsers) {
-        # If this entry starts with COMPUTERNAME\, remove just that portion
+        # If entry starts with COMPUTERNAME\ (case-insensitive), Then its local
         if ($item -match $LocalPrefixRegex) {
-            # 'LocalName' is the part after "COMPUTERNAME\"
+            # Example: COMPUTERNAME\Administrator -> strip COMPUTERNAME\
             $localName = $item -replace $LocalPrefixRegex, ''
 
-            # Try to see if it corresponds to a *local user* object
-            # (If it's a local group, this call will fail and $localUser will be $null)
+            # Check if it's a *local user* (e.g. "Administrator", "LocalTestUser", etc.)
             $localUser = Get-LocalUser -Name $localName -ErrorAction SilentlyContinue
-            
             if ($null -ne $localUser) {
-                # It's a local user. Keep only if enabled
+                # It's a local user. Only add if actually enabled
                 if ($localUser.Enabled) {
                     $ProcessedUsers += $localName
                 }
                 else {
-                    # It's a local user but disabled—skip it
+                    # It's disabled => Skip it
                 }
             }
             else {
-                # Probably a local group (e.g., "Administrators", "Remote Desktop Users", etc.)
-                # Keep it in the list, with the COMPUTERNAME\ portion stripped away
-                $ProcessedUsers += $localName
+                # Not local user => check if it's a local group
+                $localGroup = Get-LocalGroup -Name $localName -ErrorAction SilentlyContinue
+                if ($null -ne $localGroup) {
+                    # It's a local group, keep it (without COMPUTERNAME\)
+                    $ProcessedUsers += $localName
+                }
+                else {
+                    # It's not a local user or a local group,skip it entirely to avoid re-listing a disabled or unknown object                    
+                }
             }
         }
         else {
-            # It's not local or doesn't start with COMPUTERNAME\, so leave it as-is
-            # (Domain user/group, NT AUTHORITY account, etc.)
+            # If it doesn't start with COMPUTERNAME\ (e.g. domain account, NT AUTHORITY, etc.)
             $ProcessedUsers += $item
         }
     }
 
-    Write-Host "Local Admins (with local prefix removed and only enabled local users):"
+    # Output
+    Write-Host "Local Admins (excluding disabled local accounts, keeping domain & local groups):"
     Write-Host "  $($ProcessedUsers -join $Delimiter)"
 
-    # Optionally set the Ninja property, if available
-    if ( (Get-Command $CheckNinjaCommand -ErrorAction SilentlyContinue).Name -like $CheckNinjaCommand `
+    # Optionally set the Ninja property
+    if ( (Get-Command $CheckNinjaCommand -ErrorAction SilentlyContinue).Name -eq $CheckNinjaCommand `
          -and -not [string]::IsNullOrEmpty($CustomField) `
          -and -not [string]::IsNullOrWhiteSpace($CustomField)) {
-        
+
         Write-Host "Attempting to set Custom Field: $CustomField"
         Ninja-Property-Set -Name $CustomField -Value ($ProcessedUsers -join $Delimiter)
     }
     else {
-        Write-Warning "Unable to set custom field (legacy OS or missing elevation?)."
+        Write-Warning "Unable to set custom field (maybe lack of elevation or legacy OS)."
     }
 }
 
