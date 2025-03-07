@@ -27,66 +27,77 @@ begin {
     if ($env:delimiter -and $env:delimiter -notlike "null") {
         $Delimiter = $env:delimiter
     }
+
     $CheckNinjaCommand  = "Ninja-Property-Set"
     $LocalComputerName  = $env:COMPUTERNAME
-    
-    # Build a case-insensitive regex to match "COMPUTERNAME\" at the start
+
+    # Build a case-insensitive regex to match COMPUTERNAME\ at start
+    # Example: if $LocalComputerName = 'MYPC', it matches "mypc\" or "MYPC\" or "MyPc\" ...
     $LocalPrefixRegex   = '^(?i)' + [Regex]::Escape($LocalComputerName) + '\\'
 }
 
 process {
-    # 1) Grab raw items from net localgroup Administrators
+    # Get raw lines from net localgroup Administrators
     $RawUsers = net.exe localgroup "Administrators" |
         Where-Object { $_ -and $_ -notmatch "command completed successfully" } |
         Select-Object -Skip 4
 
     if (-not $RawUsers) {
-        Write-Error "[Error] No users found! Something might be blocking 'net localgroup administrators'."
+        Write-Error "[Error] No users found in local Administrators group!"
         exit 1
     }
 
     $ProcessedUsers = @()
 
     foreach ($item in $RawUsers) {
-        # If entry starts with COMPUTERNAME\ (case-insensitive), Then its local
-        if ($item -match $LocalPrefixRegex) {
-            # Example: COMPUTERNAME\Administrator -> strip COMPUTERNAME\
-            $localName = $item -replace $LocalPrefixRegex, ''
+        # Trim leading/trailing whitespace just in case
+        $line = $item.Trim()
 
-            # Check if it's a *local user* (e.g. "Administrator", "LocalTestUser", etc.)
-            $localUser = Get-LocalUser -Name $localName -ErrorAction SilentlyContinue
-            if ($null -ne $localUser) {
-                # It's a local user. Only add if actually enabled
+        # Check if it starts with COMPUTERNAME\ (case-insensitive)
+        if ($line -match $LocalPrefixRegex) {
+            # Strip the COMPUTERNAME\ portion
+            $localName = $line -replace $LocalPrefixRegex, ''
+            # Also trim again in case there's trailing space
+            $localName = $localName.Trim()
+
+            # --- TRY local user ---
+            # Use a *case-insensitive* check by enumerating & comparing:
+            $localUser = Get-LocalUser -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -ieq $localName }
+
+            if ($localUser) {
+                # Found as a local user
                 if ($localUser.Enabled) {
+                    # Only add if enabled
                     $ProcessedUsers += $localName
                 }
-                else {
-                    # It's disabled => Skip it
-                }
+                # If disabled, do nothing (skip)
             }
             else {
-                # Not local user => check if it's a local group
-                $localGroup = Get-LocalGroup -Name $localName -ErrorAction SilentlyContinue
-                if ($null -ne $localGroup) {
-                    # It's a local group, keep it (without COMPUTERNAME\)
+                # --- TRY local group ---
+                $localGroup = Get-LocalGroup -ErrorAction SilentlyContinue |
+                    Where-Object { $_.Name -ieq $localName }
+
+                if ($localGroup) {
+                    # It's a valid local group, keep it (without COMPUTERNAME\)
                     $ProcessedUsers += $localName
                 }
-                else {
-                    # It's not a local user or a local group,skip it entirely to avoid re-listing a disabled or unknown object                    
-                }
+                # If neither found -> skip entirely
             }
         }
         else {
-            # If it doesn't start with COMPUTERNAME\ (e.g. domain account, NT AUTHORITY, etc.)
-            $ProcessedUsers += $item
+            # It's not local (doesn't start with COMPUTERNAME\),
+            # so it might be a domain account, or "NT AUTHORITY\SYSTEM", etc.
+            # Keep it as-is.
+            $ProcessedUsers += $line
         }
     }
 
-    # Output
-    Write-Host "Local Admins (excluding disabled local accounts, keeping domain & local groups):"
+    # Show final list
+    Write-Host "Local Admins (excluding disabled local users, keeping domain accounts/groups):"
     Write-Host "  $($ProcessedUsers -join $Delimiter)"
 
-    # Optionally set the Ninja property
+    # Optionally set custom field in Ninja
     if ( (Get-Command $CheckNinjaCommand -ErrorAction SilentlyContinue).Name -eq $CheckNinjaCommand `
          -and -not [string]::IsNullOrEmpty($CustomField) `
          -and -not [string]::IsNullOrWhiteSpace($CustomField)) {
@@ -95,8 +106,9 @@ process {
         Ninja-Property-Set -Name $CustomField -Value ($ProcessedUsers -join $Delimiter)
     }
     else {
-        Write-Warning "Unable to set custom field (maybe lack of elevation or legacy OS)."
+        Write-Warning "Unable to set custom field (lack of elevation or Ninja command not found)."
     }
 }
+
 
 
