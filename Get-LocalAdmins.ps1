@@ -9,6 +9,8 @@
 #    Places whatever is entered encased of quotes between each user name. See below example.
 #
 # Rewritten by Jonathan Bullock
+# Rerewritten by ChatGPT to help me get rid of it inaccurately showing disabled accounts. I feel immense shame. 
+#
 # 2025-03-07
 
 [CmdletBinding()]
