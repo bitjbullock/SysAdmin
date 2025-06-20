@@ -51,7 +51,7 @@ function Install-Dymo {
     Invoke-WebRequest -Uri $Url -OutFile $Path -UseBasicParsing
 
     Write-Output "Installing DYMO Connect silently..."
-    Start-Process -FilePath $Path -ArgumentList "/quiet" -Wait
+    Start-Process -FilePath $Path -ArgumentList "/S /v`"/qn`"" -Wait
 
     Write-Output "Cleaning up installer..."
     Remove-Item -Path $Path -Force -ErrorAction SilentlyContinue
