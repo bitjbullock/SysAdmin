@@ -65,11 +65,21 @@ $installedVersion = Get-InstalledDymoVersion
 Write-Output "Installed version: $installedVersion"
 Write-Output "Latest available version: $latestVersion"
 
-if (-not $installedVersion -or ([version]$latestVersion -gt [version]$installedVersion)) {
-    Write-Output "An update or install is required. Proceeding..."
-    Install-Dymo -Url $installerUrl -Path $installerPath
-} else {
-    Write-Output "DYMO Connect is up to date. No action required."
+function Get-InstalledDymoVersion {
+    $registryPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+
+    foreach ($path in $registryPaths) {
+        $apps = Get-ItemProperty -Path $path -ErrorAction SilentlyContinue |
+            Where-Object { $_.DisplayName -like "*DYMO Connect*" }
+
+        if ($apps) {
+            return $apps[0].DisplayVersion
+        }
+    }
+    return $null
 }
 
 
