@@ -16,6 +16,11 @@ if (-not (Test-Path $destinationPath)) {
     New-Item -ItemType Directory -Path $destinationPath
 }
 
+# get the architecture
+$arch = if ([Environment]::Is64BitOperatingSystem) { "x86_64" } else { "i686" }
+
+Write-Host "Detected architecture: $arch"
+
 # get latest releases from github
 $apiUrl = "https://api.github.com/repos/Neo23x0/Loki-RS/releases/latest"
 try {
@@ -24,14 +29,17 @@ try {
     Write-Error "Failed to fetch release info: $_"
     exit 1
 }
-#
 
-$asset = $release.assets | Where-Object { $_.name -match "windows" } | Select-Object -First 1
+
+#  
+$asset = $release.assets | Where-Object { $_.name -match "windows" -and $_.name -match $arch } | Select-Object -First 1
 
 if (-not $asset) {
     Write-Error "No matching Loki-RS binary found"
     exit 1
 }
+
+
 # Download it
 try {
     Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $lokiZipPath
@@ -48,10 +56,10 @@ Expand-Archive -LiteralPath $lokiZipPath -DestinationPath $destinationPath
 
 # Change to the Loki directory
 $lokiExtractedFolder = Get-ChildItem -Path $destinationPath -Directory | Where-Object { $_.Name -match 'Loki' }
-cd $lokiExtractedFolder.FullName
+cd $destinationpath
 
 # Run Loki-Upgrader.exe first to download the latest signatures
-.\loki-upgrader.exe
+.\loki-util.exe update
 
 # Run Loki to scan for IOCs
 # Review readme on github https://github.com/Neo23x0/Loki
