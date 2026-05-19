@@ -6,6 +6,8 @@
 # Written by Jonathan Bullock
 # 2023 - 11 - 17
 
+# Depricated please use https://github.com/bitjbullock/SysAdmin/blob/main/Loki-RS.ps1
+
 # Pre-Reqs
 $lokiUrl = "https://github.com/Neo23x0/Loki/releases/download/v0.51.0/loki_0.51.0.zip" # Replace with the latest release URL
 $destinationPath = "C:\brockit"
